@@ -35,6 +35,7 @@ COLIN_TOLERANCE = 10
 T = 10**COLIN_TOLERANCE
 T2 = 10.0**COLIN_TOLERANCE
 
+
 def visible_vertices(point, graph, origin=None, destination=None, scan='full'):
     """Returns list of Points in graph visible by point.
 
@@ -93,12 +94,21 @@ def visible_vertices(point, graph, origin=None, destination=None, scan='full'):
                 if prev not in edge and edge_intersect(prev, p, edge):
                     is_visible = False
                     break
-            if is_visible and edge_in_polygon(prev, p, graph):
-                    is_visible = False
+            # check if prev and p both on boundary. if true, prev to p need to be in polygon
+            if is_visible:
+                if prev.on_boundary and p.on_boundary:
+                    is_visible = edge_in_polygon(prev, p, graph)
+                else:
+                    is_visible = not edge_in_polygon(prev, p, graph)
 
         # Check if the visible edge is interior to its polygon
         if is_visible and p not in graph.get_adjacent_points(point):
-            is_visible = not edge_in_polygon(point, p, graph)
+            # check if point and p are on boundary. if true, point to p need be in polygon
+            if point.on_boundary and p.on_boundary:
+                is_visible = edge_in_polygon(point, p, graph)
+            else:
+                is_visible = not edge_in_polygon(point, p, graph)
+            # Modified by ljx
 
         if is_visible: visible.append(p)
 

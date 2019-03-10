@@ -25,18 +25,29 @@ from collections import defaultdict
 
 
 class Point(object):
-    __slots__ = ('x', 'y', 'polygon_id')
+    __slots__ = ('x', 'y', 'polygon_id', 'on_boundary')
 
-    def __init__(self, x, y, polygon_id=-1):
+    def __init__(self, x, y, polygon_id=-1, on_boundary=False):
         self.x = float(x)
         self.y = float(y)
         self.polygon_id = polygon_id
+        self.on_boundary = on_boundary
 
     def __eq__(self, point):
         return point and self.x == point.x and self.y == point.y
 
     def __ne__(self, point):
         return not self.__eq__(point)
+
+    def __add__(self, point):
+        x = self.x + point.x
+        y = self.y + point.y
+        return Point(x, y)
+
+    def __sub__(self, point):
+        x = self.x - point.x
+        y = self.y - point.y
+        return Point(x, y)
 
     def __lt__(self, point):
         """ This is only needed for shortest path calculations where heapq is
@@ -107,12 +118,14 @@ class Graph(object):
     given a polygon ID of -1 and not maintained in the dict.
     """
 
-    def __init__(self, polygons):
+    def __init__(self, polygons, has_boundary=False):
         self.graph = defaultdict(set)
         self.edges = set()
         self.polygons = defaultdict(set)
         pid = 0
         for polygon in polygons:
+            if pid==0 and has_boundary==True:
+                for point in polygon: point.on_boundary = True
             if polygon[0] == polygon[-1] and len(polygon) > 1:
                 polygon.pop()
             for i, point in enumerate(polygon):

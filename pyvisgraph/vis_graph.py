@@ -56,7 +56,7 @@ class VisGraph(object):
         with open(filename, 'wb') as output:
             pickle.dump((self.graph, self.visgraph), output, -1)
 
-    def build(self, input, workers=1, status=True): 
+    def build(self, input, workers=1, status=True, has_boundary=False):
         """Build visibility graph based on a list of polygons.
 
         The input must be a list of polygons, where each polygon is a list of
@@ -69,7 +69,7 @@ class VisGraph(object):
         Set status=False to turn off the statusbar when building.
         """
 
-        self.graph = Graph(input)
+        self.graph = Graph(input, has_boundary)
         self.visgraph = Graph([])
 
         points = self.graph.get_points()
