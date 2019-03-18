@@ -1,26 +1,3 @@
-"""
-The MIT License (MIT)
-
-Copyright (c) 2016 Christian August Reksten-Monsen
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-"""
 from timeit import default_timer
 from sys import stdout, version_info
 from multiprocessing import Pool
@@ -29,8 +6,8 @@ from warnings import warn
 
 from pyvisgraph.graph import Graph, Edge
 from pyvisgraph.shortest_path import shortest_path
-from pyvisgraph.visible_vertices import visible_vertices, point_in_polygon
-from pyvisgraph.visible_vertices import closest_point
+from pyvisgraph.visible_vertices import visible_vertices, point_in_polygon, point_check_polygon_id
+from pyvisgraph.visible_vertices import closest_point, on_segment, edge_intersect, edge_in_polygon
 
 PYTHON3 = version_info[0] == 3
 if PYTHON3:
@@ -113,13 +90,17 @@ class VisGraph(object):
         visibility edges will be found, but only kept temporarily for finding
         the shortest path. 
         """
-
         origin_exists = origin in self.visgraph
         dest_exists = destination in self.visgraph
         if origin_exists and dest_exists:
             return shortest_path(self.visgraph, origin, destination)
         orgn = None if origin_exists else origin
         dest = None if dest_exists else destination
+
+        # 2019.03.18_ryukeisyo: check if the input points are on polygon, and assign value
+        origin.polygon_id = point_check_polygon_id(origin, self.graph)
+        destination.polygon_id = point_check_polygon_id(destination, self.graph)
+
         add_to_visg = Graph([])
         if not origin_exists:
             for v in visible_vertices(origin, self.graph, destination=dest):
@@ -127,6 +108,7 @@ class VisGraph(object):
         if not dest_exists:
             for v in visible_vertices(destination, self.graph, origin=orgn):
                 add_to_visg.add_edge(Edge(destination, v))
+
         return shortest_path(self.visgraph, origin, destination, add_to_visg)
 
     def point_in_polygon(self, point):
@@ -142,6 +124,13 @@ class VisGraph(object):
         """
 
         return closest_point(point, self.graph, polygon_id, length)
+
+    # 2019.03.18_ryukeisyo: new function
+    def point_check_polygon_id(self, point):
+        """"Return the polygon id of point based on given graph"""
+        return point_check_polygon_id(point, self.graph)
+
+
 
 
 def _vis_graph_wrapper(args):

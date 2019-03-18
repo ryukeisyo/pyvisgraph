@@ -1,31 +1,8 @@
-"""
-The MIT License (MIT)
-
-Copyright (c) 2016 Christian August Reksten-Monsen
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-"""
 from __future__ import division
 from math import pi, sqrt, atan, acos
 from pyvisgraph.graph import Point
 
-INF = 10000
+INF = 100000
 CCW = 1
 CW = -1
 COLLINEAR = 0
@@ -60,6 +37,8 @@ def visible_vertices(point, graph, origin=None, destination=None, scan='full'):
         if edge_intersect(point, point_inf, edge):
             if on_segment(point, edge.p1, point_inf): continue
             if on_segment(point, edge.p2, point_inf): continue
+            # if point is on edge(between the two ends), also continue
+            if on_segment(edge.p1, point, edge.p2): continue
             open_edges.insert(point, point_inf, edge)
 
     visible = []
@@ -77,12 +56,14 @@ def visible_vertices(point, graph, origin=None, destination=None, scan='full'):
 
         # Check if p is visible from point
         is_visible = False
-        # ...Non-collinear points
+        # ...Non-collinear points. 2019.03.19_by_ryukeisyo: added case for p on open_edge
         if prev is None or ccw(point, prev, p) != COLLINEAR or not on_segment(point, prev, p):
             if len(open_edges) == 0:
                 is_visible = True
-            elif not edge_intersect(point, p, open_edges.smallest()):
-                is_visible = True
+            elif edge_intersect(point, p, open_edges.smallest()):
+                edge = open_edges.smallest()
+                if on_segment(edge.p1, p, edge.p2) or p==edge.p1 or p==edge.p2: is_visible = True
+            else: is_visible = True
         # ...For collinear points, if previous point was not visible, p is not
         elif not prev_visible:
             is_visible = False
@@ -94,21 +75,21 @@ def visible_vertices(point, graph, origin=None, destination=None, scan='full'):
                 if prev not in edge and edge_intersect(prev, p, edge):
                     is_visible = False
                     break
-            # check if prev and p both on boundary. if true, prev to p need to be in polygon
-            if is_visible:
-                if prev.on_boundary and p.on_boundary:
-                    is_visible = edge_in_polygon(prev, p, graph)
-                else:
-                    is_visible = not edge_in_polygon(prev, p, graph)
 
         # Check if the visible edge is interior to its polygon
         if is_visible and p not in graph.get_adjacent_points(point):
-            # check if point and p are on boundary. if true, point to p need be in polygon
-            if point.on_boundary and p.on_boundary:
-                is_visible = edge_in_polygon(point, p, graph)
-            else:
-                is_visible = not edge_in_polygon(point, p, graph)
-            # Modified by ljx
+            # 2019.03.18_by_ryukeisyo:
+            # check if point is in edge of graph[p]. if False:
+            # check if point and p are on boundary, which determins how edge_in_polygon difines visibiliy
+            is_point_in_edge = False
+            for edge in graph[p]:
+                if on_segment(edge.p1, point, edge.p2): is_point_in_edge = True
+                if point == edge.p1 or point == edge.p2: is_point_in_edge = True
+            if not is_point_in_edge:
+                if graph.has_boundary == True and point.polygon_id == p.polygon_id == 0:
+                    is_visible = edge_in_polygon(point, p, graph)
+                else:
+                    is_visible = not edge_in_polygon(point, p, graph)
 
         if is_visible: visible.append(p)
 
@@ -337,6 +318,17 @@ def edge_intersect(p1, q1, edge):
     if o4 == COLLINEAR and on_segment(p2, q1, q2):
         return True
     return False
+
+
+# 2019.03.18_ryukeisyo: new function
+def point_check_polygon_id(point, graph):
+    """Return the polygon id of point based on given graph"""
+    polygon_id = -1
+    for edge in graph.edges:
+        if point in edge or on_segment(edge.p1, point, edge.p2):
+            polygon_id = edge.p1.polygon_id
+            break
+    return polygon_id
 
 
 class OpenEdges(object):

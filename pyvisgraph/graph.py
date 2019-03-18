@@ -1,37 +1,12 @@
-"""
-The MIT License (MIT)
-
-Copyright (c) 2016 Christian August Reksten-Monsen
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-"""
 from collections import defaultdict
 
-
 class Point(object):
-    __slots__ = ('x', 'y', 'polygon_id', 'on_boundary')
+    __slots__ = ('x', 'y', 'polygon_id')
 
-    def __init__(self, x, y, polygon_id=-1, on_boundary=False):
+    def __init__(self, x, y, polygon_id=-1):
         self.x = float(x)
         self.y = float(y)
         self.polygon_id = polygon_id
-        self.on_boundary = on_boundary
 
     def __eq__(self, point):
         return point and self.x == point.x and self.y == point.y
@@ -122,10 +97,9 @@ class Graph(object):
         self.graph = defaultdict(set)
         self.edges = set()
         self.polygons = defaultdict(set)
+        self.has_boundary = has_boundary
         pid = 0
         for polygon in polygons:
-            if pid==0 and has_boundary==True:
-                for point in polygon: point.on_boundary = True
             if polygon[0] == polygon[-1] and len(polygon) > 1:
                 polygon.pop()
             for i, point in enumerate(polygon):
@@ -175,3 +149,4 @@ class Graph(object):
 
     def __repr__(self):
         return self.__str__()
+
