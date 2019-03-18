@@ -110,8 +110,10 @@ def visible_vertices(point, graph, origin=None, destination=None, scan='full'):
                 if on_segment(edge.p1, point, edge.p2): is_point_in_edge = True
                 if point == edge.p1 or point == edge.p2: is_point_in_edge = True
             if not is_point_in_edge:
-                if graph.has_boundary == True and point.polygon_id == p.polygon_id == 0:
+                if graph.has_boundary and point.polygon_id == p.polygon_id == 0:
                     is_visible = edge_in_polygon(point, p, graph)
+                    if prev_visible and ccw(prev, p, point) == COLLINEAR and not edge_in_polygon(prev, p, graph):
+                        is_visible = False
                 else:
                     is_visible = not edge_in_polygon(point, p, graph)
 

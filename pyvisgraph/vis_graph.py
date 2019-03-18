@@ -116,14 +116,15 @@ class VisGraph(object):
         """
         origin_exists = origin in self.visgraph
         dest_exists = destination in self.visgraph
-        if origin_exists and dest_exists:
-            return shortest_path(self.visgraph, origin, destination)
-        orgn = None if origin_exists else origin
-        dest = None if dest_exists else destination
 
         # 2019.03.18_ryukeisyo: check if the input points are on polygon, and assign value
         origin.polygon_id = point_check_polygon_id(origin, self.graph)
         destination.polygon_id = point_check_polygon_id(destination, self.graph)
+
+        if origin_exists and dest_exists:
+            return shortest_path(self.visgraph, origin, destination)
+        orgn = None if origin_exists else origin
+        dest = None if dest_exists else destination
 
         add_to_visg = Graph([])
         if not origin_exists:
