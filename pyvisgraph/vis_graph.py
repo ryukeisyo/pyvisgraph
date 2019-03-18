@@ -156,8 +156,6 @@ class VisGraph(object):
         return point_check_polygon_id(point, self.graph)
 
 
-
-
 def _vis_graph_wrapper(args):
     try:
         return _vis_graph(*args)

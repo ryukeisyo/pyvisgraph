@@ -142,10 +142,13 @@ def polygon_crossing(p1, poly_edges):
         # Deal with points collinear to p1
         edge_p1_collinear = (ccw(p1, edge.p1, p2) == COLLINEAR)
         edge_p2_collinear = (ccw(p1, edge.p2, p2) == COLLINEAR)
-        if edge_p1_collinear and edge_p2_collinear: continue
+        if edge_p1_collinear and edge_p2_collinear:
+            # 2019.03.09_ryukeisyo: icrement add, testing
+            intersect_count += 1
+            continue
         if edge_p1_collinear or edge_p2_collinear:
             collinear_point = edge.p1 if edge_p1_collinear else edge.p2
-            if edge.get_adjacent(collinear_point).y > p1.y:
+            if edge.get_adjacent(collinear_point).y > p1.y :
                 intersect_count += 1
         elif edge_intersect(p1, p2, edge):
             intersect_count += 1
