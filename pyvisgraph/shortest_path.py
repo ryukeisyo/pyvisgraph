@@ -73,10 +73,12 @@ def shortest_path(graph, origin, destination, add_to_visgraph=None):
 
 
 def path_length(path):
+    """Return the length of path"""
     dist = 0
     for i in range(len(path)-1):
         dist += edge_distance(path[i], path[i+1])
     return dist
+
 
 class priority_dict(dict):
     """Dictionary that can be used as a priority queue.

@@ -143,8 +143,6 @@ def polygon_crossing(p1, poly_edges):
         edge_p1_collinear = (ccw(p1, edge.p1, p2) == COLLINEAR)
         edge_p2_collinear = (ccw(p1, edge.p2, p2) == COLLINEAR)
         if edge_p1_collinear and edge_p2_collinear:
-            # 2019.03.09_ryukeisyo: icrement add, testing
-            intersect_count += 1
             continue
         if edge_p1_collinear or edge_p2_collinear:
             collinear_point = edge.p1 if edge_p1_collinear else edge.p2
@@ -350,14 +348,16 @@ def edge_intersect(p1, q1, edge):
 
 
 # 2019.03.18_ryukeisyo: new function
-def point_check_polygon_id(point, graph):
-    """Return the polygon id of point based on given graph"""
+def point_check_polygon_relation(point, graph):
+    """Return a tuple: the polygon id of point on given graph, the edge where the point is on"""
     polygon_id = -1
+    on_edge = None
     for edge in graph.edges:
         if point in edge or on_segment(edge.p1, point, edge.p2):
             polygon_id = edge.p1.polygon_id
+            on_edge = edge
             break
-    return polygon_id
+    return polygon_id, on_edge
 
 
 class OpenEdges(object):

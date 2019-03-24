@@ -30,7 +30,7 @@ from warnings import warn
 
 from pyvisgraph.graph import Graph, Edge
 from pyvisgraph.shortest_path import shortest_path
-from pyvisgraph.visible_vertices import visible_vertices, point_in_polygon, point_check_polygon_id
+from pyvisgraph.visible_vertices import visible_vertices, point_in_polygon, point_check_polygon_relation
 from pyvisgraph.visible_vertices import closest_point, on_segment, edge_intersect, edge_in_polygon
 
 PYTHON3 = version_info[0] == 3
@@ -117,16 +117,21 @@ class VisGraph(object):
         origin_exists = origin in self.visgraph
         dest_exists = destination in self.visgraph
 
+        add_to_visg = Graph([])
+
         # 2019.03.18_ryukeisyo: check if the input points are on polygon, and assign value
-        origin.polygon_id = point_check_polygon_id(origin, self.graph)
-        destination.polygon_id = point_check_polygon_id(destination, self.graph)
+        origin_status = point_check_polygon_relation(origin, self.graph)
+        destination_status = point_check_polygon_relation(destination, self.graph)
+        origin.polygon_id = origin_status[0]
+        destination.polygon_id = destination_status[0]
+        if origin_status[1] == destination_status[1] and origin_status[1] is not None:
+            add_to_visg.add_edge(Edge(origin, destination))
 
         if origin_exists and dest_exists:
             return shortest_path(self.visgraph, origin, destination)
         orgn = None if origin_exists else origin
         dest = None if dest_exists else destination
 
-        add_to_visg = Graph([])
         if not origin_exists:
             for v in visible_vertices(origin, self.graph, destination=dest):
                 add_to_visg.add_edge(Edge(origin, v))
@@ -151,9 +156,9 @@ class VisGraph(object):
         return closest_point(point, self.graph, polygon_id, length)
 
     # 2019.03.18_ryukeisyo: new function
-    def point_check_polygon_id(self, point):
-        """"Return the polygon id of point based on given graph"""
-        return point_check_polygon_id(point, self.graph)
+    def point_check_polygon_relation(self, point):
+        """Return a tuple: the polygon id of point on given graph, the edge where the point is on"""
+        return point_check_polygon_relation(point, self.graph)
 
 
 def _vis_graph_wrapper(args):
