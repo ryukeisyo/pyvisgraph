@@ -124,6 +124,7 @@ class VisGraph(object):
         destination_status = point_check_polygon_relation(destination, self.graph)
         origin.polygon_id = origin_status[0]
         destination.polygon_id = destination_status[0]
+
         if origin_status[1] == destination_status[1] and origin_status[1] is not None:
             add_to_visg.add_edge(Edge(origin, destination))
 

@@ -57,12 +57,17 @@ def visible_vertices(point, graph, origin=None, destination=None, scan='full'):
     open_edges = OpenEdges()
     point_inf = Point(INF, point.y)
     for edge in edges:
-        if point in edge: continue
+        if point in edge:
+            point.polygon_id = edge.p1.polygon_id
+            continue
+        if on_segment(edge.p1, point, edge.p2):
+            point.polygon_id = edge.p1.polygon_id
+            continue
         if edge_intersect(point, point_inf, edge):
             if on_segment(point, edge.p1, point_inf): continue
             if on_segment(point, edge.p2, point_inf): continue
             # if point is on edge(between the two ends), also continue
-            if on_segment(edge.p1, point, edge.p2): continue
+
             open_edges.insert(point, point_inf, edge)
 
     visible = []
